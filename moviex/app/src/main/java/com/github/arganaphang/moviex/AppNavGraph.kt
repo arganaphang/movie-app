@@ -1,10 +1,15 @@
 package com.github.arganaphang.moviex
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
 import com.github.arganaphang.moviex.screen.detail.DetailScreen
 import com.github.arganaphang.moviex.screen.main.BookmarkScreen
 import com.github.arganaphang.moviex.screen.main.HomeScreen
@@ -12,31 +17,39 @@ import kotlinx.serialization.Serializable
 
 @Composable
 fun AppNavGraph(navHostController: NavHostController) {
-    NavHost(navController = navHostController, startDestination = AppRoutes.Main) {
-        // TODO: MainScreen() buat bottom navigation bar nya ga kepake kalau pake cara ini
-        navigation<AppRoutes.Main>(startDestination = AppRoutes.Main.Home) {
-            composable<AppRoutes.Main.Home> {
-                HomeScreen()
+    NavHost(
+        navController = navHostController,
+        startDestination = Routes.Main.route,
+        ) {
+        navigation(route = Routes.Main.route, startDestination = Routes.Main.Home.route) {
+            composable(route = Routes.Main.Home.route) {
+                HomeScreen(onNavigateToDetail = { id ->
+                    navHostController.navigate(Routes.Detail(id))
+                })
             }
-            composable<AppRoutes.Main.Bookmark> {
-                BookmarkScreen()
+            composable(route = Routes.Main.Bookmark.route) {
+                BookmarkScreen(onNavigateToDetail = { id ->
+                    navHostController.navigate(Routes.Detail(id))
+                })
             }
         }
-        composable<AppRoutes.Detail> {
-            DetailScreen()
+        composable<Routes.Detail> { backStackEntry ->
+            val id: Int = backStackEntry.toRoute<Routes.Detail>().id
+            DetailScreen(id)
         }
     }
 }
 
 
-object AppRoutes {
+@Serializable
+sealed class Routes(val route: String) {
     @Serializable
-    object Main {
+    data object Main : Routes("main") {
         @Serializable
-        object Home
+        data object Home : Routes("main/home")
 
         @Serializable
-        object Bookmark
+        data object Bookmark : Routes("main/bookmark")
     }
 
     @Serializable
